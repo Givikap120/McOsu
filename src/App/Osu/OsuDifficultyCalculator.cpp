@@ -1283,7 +1283,7 @@ double OsuDifficultyCalculator::computeSpeedValue(const ScoreData &score, const 
 
 	// see https://github.com/ppy/osu-performance/pull/128/
 	// Scale the speed value with accuracy and OD
-	speedValue *= (0.95 + std::pow(attributes.OverallDifficulty, 2.0) / 750.0) * std::pow((score.accuracy + relevantAccuracy) / 2.0, (14.5 - std::max(attributes.OverallDifficulty, 8.0)) / 2.0);
+	speedValue *= (0.95 + std::pow(attributes.OverallDifficulty, 2.0) / 750.0) * std::pow((score.accuracy + relevantAccuracy) / 2.0, (14.5 - attributes.OverallDifficulty) / 2.0);
 	// Scale the speed value with # of 50s to punish doubletapping.
 	speedValue *= std::pow(0.99, score.countMeh < (score.totalHits / 500.0) ? 0.0 : score.countMeh - (score.totalHits / 500.0));
 
