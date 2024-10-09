@@ -311,7 +311,7 @@ double OsuDifficultyCalculator::calculateStarDiffForHitObjects(std::vector<OsuDi
 	// see https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Difficulty/Skills/Aim.cs
 
 	static const double decay_base[NUM_SKILLS] = {0.3, 0.15, 0.15};				// how much strains decay per interval (if the previous interval's peak strains after applying decay are still higher than the current one's, they will be used as the peak strains).
-	static const double weight_scaling[NUM_SKILLS] = {1375.0, 23.55, 23.55};	// used to keep speed and aim balanced between eachother
+	static const double weight_scaling[NUM_SKILLS] = {1.43, 24.983, 24.983};	// used to keep speed and aim balanced between eachother
 
 
 
@@ -559,20 +559,7 @@ double OsuDifficultyCalculator::calculateStarDiffForHitObjects(std::vector<OsuDi
 				}
 			}
 
-			double skillSpecificDifficultyMultiplier = difficultyMultiplier;
-			{
-				switch (type)
-				{
-				case Skills::Skill::SPEED:
-					skillSpecificDifficultyMultiplier = 1.04;
-					break;
-				case Skills::Skill::AIM_SLIDERS:
-				case Skills::Skill::AIM_NO_SLIDERS:
-					break;
-				}
-			}
-
-			return difficulty * skillSpecificDifficultyMultiplier;
+			return difficulty;
 		}
 
 		// old implementation (ppv2.0)
@@ -614,6 +601,7 @@ double OsuDifficultyCalculator::calculateStarDiffForHitObjects(std::vector<OsuDi
 
 			static const double min_speed_bonus = 75.0; /* ~200BPM 1/4 streams */
 			static const double speed_balancing_factor = 40.0;
+			static const double distance_multiplier = 0.94;
 
 			static const int history_time_max = 5000;
 			static const double rhythm_multiplier = 0.75;
@@ -651,11 +639,15 @@ double OsuDifficultyCalculator::calculateStarDiffForHitObjects(std::vector<OsuDi
 							doubletapness = std::pow(speedRatio, 1 - windowRatio);
 						}
 
-						double speed_bonus = 1.0;
+						double speed_bonus = 0.0;
 						if (strain_time < min_speed_bonus)
-							speed_bonus = 1.0 + 0.75 * std::pow((min_speed_bonus - strain_time) / speed_balancing_factor, 2.0);
+							speed_bonus = 0.75 * std::pow((min_speed_bonus - strain_time) / speed_balancing_factor, 2.0);
 
-						raw_speed_strain = (speed_bonus + speed_bonus * std::pow(distance / single_spacing_threshold, 3.5)) * doubletapness / strain_time;
+						double distance_bonus = Math.Pow(distance / single_spacing_threshold, 3.95) * distance_multiplier;
+
+						double difficulty = (1.0 + speed_bonus + distance_bonus) * 1000 / strain_time;
+
+						raw_speed_strain = difficulty * doubletapness;
 
 						// https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs
 						int previousIslandSize = 0;
@@ -1147,7 +1139,7 @@ double OsuDifficultyCalculator::calculatePPv2(int modsLegacy, double timescale, 
 	double effectiveMissCount = clamp<double>(comboBasedMissCount, (double)misses, (double)(c50 + c100 + misses));
 
 	// custom multipliers for nofail and spunout
-	double multiplier = 1.14; // keep final pp normalized across changes
+	double multiplier = 1.15; // keep final pp normalized across changes
 	{
 		if (modsLegacy & OsuReplay::Mods::NoFail)
 			multiplier *= std::max(0.9, 1.0 - 0.02 * effectiveMissCount); // see https://github.com/ppy/osu-performance/pull/127/files
