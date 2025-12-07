@@ -2120,7 +2120,7 @@ double OsuDifficultyCalculator::DiffObject::spacing_weight2(const Skills::Skill 
 
 					if (prev2 != NULL)
 					{
-						float distance = (prevPrev->ho->pos - prev2->ho->pos).length();
+						float distance = (prev.ho->pos - prev2->ho->pos).length();
 
 						if (distance < 1)
 						{
